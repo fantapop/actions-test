@@ -20,7 +20,7 @@ jobs:
           # as the "creator" of the status check, and must have access to read
           # pull request data, create status checks (`repo:status`), and to read
           # your organization's teams (`read:org`).
-          token: ${{ secrets.REQUIRED_REVIEWS_TOKEN }}
+          token: ${{ secrets.REQUIRED_REVIEWS_CLASSIC_TOKEN }}
           requirements: |
             - name: Dir1
               paths:
