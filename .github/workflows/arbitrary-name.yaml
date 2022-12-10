@@ -16,6 +16,10 @@ jobs:
     steps:
       - uses: Automattic/action-required-review@v3
         with:
+          # GitHub Access Token. The user associated with this token will show up
+          # as the "creator" of the status check, and must have access to read
+          # pull request data, create status checks (`repo:status`), and to read
+          # your organization's teams (`read:org`).
           token: ${{ secrets.REQUIRED_REVIEWS_TOKEN }}
           requirements: |
             - name: Dir1
@@ -28,3 +32,7 @@ jobs:
               paths: unmatched
               teams:
                 - '@fantapop'
+
+          # Specify the "context" for the status to set. This is what shows up in the
+          # PR's checks list.
+          status: Required review
