@@ -26,12 +26,12 @@ jobs:
               paths:
                 - dir1/**
               teams:
-                - @fantapop
+                - '@fantapop'
 
             - name: Everything else
               paths: unmatched
               teams:
-                - @fantapop
+                - '@fantapop'
 
           # Specify the "context" for the status to set. This is what shows up in the
           # PR's checks list.
