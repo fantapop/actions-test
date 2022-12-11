@@ -24,7 +24,7 @@ jobs:
           requirements: |
             - name: Dir1
               paths:
-                - dir1/**
+                - dir3/**
               teams:
                 - '@chrisgithub2'
           # Specify the "context" for the status to set. This is what shows up in the
