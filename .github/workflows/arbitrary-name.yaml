@@ -26,13 +26,7 @@ jobs:
               paths:
                 - dir1/**
               teams:
-                - '@fantapop'
-
-            - name: Everything else
-              paths: unmatched
-              teams:
-                - '@fantapop'
-
+                - '@chrisgithub2'
           # Specify the "context" for the status to set. This is what shows up in the
           # PR's checks list.
           status: Required review
