@@ -21,10 +21,14 @@ jobs:
           # pull request data, create status checks (`repo:status`), and to read
           # your organization's teams (`read:org`).
           token: ${{ secrets.REQUIRED_REVIEWS_CLASSIC_TOKEN }}
+          # These requirements aren't a secure way to lock down edits since you
+          # can simply modify this file in your PR.
           requirements: |
-            - name: Dir1
+            # Name should describe team that's required, otherwise its difficult
+            # to tell who the required team is
+            - name: Docs Team
               paths:
-                - dir3/**
+                - dir1/**
               teams:
                 - '@chrisgithub2'
           # Specify the "context" for the status to set. This is what shows up in the
