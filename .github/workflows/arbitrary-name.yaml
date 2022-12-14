@@ -1,0 +1,41 @@
+name: Required review check
+on:
+  pull_request_review:
+  pull_request:
+    types: [ opened, reopened, synchronize ]
+
+jobs:
+  check:
+    name: Checking required reviews
+    runs-on: ubuntu-latest
+
+    # GitHub should provide a "pull_request_review_target", but they don't and
+    # the action will fail if run on a forked PR.
+    if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+
+    steps:
+      - uses: fantapop/action-required-review
+        with:
+          # GitHub Access Token. The user associated with this token will show up
+          # as the "creator" of the status check, and must have access to read
+          # pull request data, create status checks (`repo:status`), and to read
+          # your organization's teams (`read:org`).
+          token: ${{ secrets.REQUIRED_REVIEWS_CLASSIC_TOKEN }}
+          requirements-file: '.github/CODEOWNERS'
+          enforce_on:
+            - '/dir1/'
+            - '*.txt'
+          # Specify the "context" for the status to set. This is what shows up in the
+          # PR's checks list.
+          status: Required review
+
+          # These requirements aren't a secure way to lock down edits since you
+          # can simply modify this file in your PR.
+          #requirements: |
+            # Name should describe team that's required, otherwise its difficult
+            # to tell who the required team is
+            #  - name: Docs Team
+            #  paths:
+            #    - dir1/**
+            #  teams:
+            #    - '@chrisgithub2'
