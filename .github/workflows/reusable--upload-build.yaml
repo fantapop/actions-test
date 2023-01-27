@@ -91,7 +91,7 @@ jobs:
         THE_BUILD_ID: ${{ inputs.the_build_id }}
       with:
         script: |
-          ["staging"].forEach((cc_env) => {
+          ["staging"].forEach(async (cc_env) => {
             let deployment = await github.rest.repos.createDeployment({
               owner: context.repo.owner,
               repo: context.repo.repo,
