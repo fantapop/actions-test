@@ -97,7 +97,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: process.env.BUILT_REF,
-              environment: `PR ${process.env.THE_BUILD_ID} (${cc_env} backend)`,
+              environment: `PR #${process.env.THE_BUILD_ID} (${cc_env} backend)`,
               transient_environment: true,
             });
 
@@ -110,17 +110,6 @@ jobs:
               auto_inactive: true
             });
           });
-
-    # - uses: "actions/github-script@v6"
-    #   if: inputs.build_type == 'preview'
-    #   with:
-    #     script: |
-    #       github.rest.issues.createComment({
-    #         issue_number: ${{ inputs.the_build_id }},
-    #         owner: context.repo.owner,
-    #         repo: context.repo.repo,
-    #         body: "Preview build available at https://${{ inputs.the_build_id }}.staging.preview.example.com .",
-    #       });
 
     - name: "Summarize"
       run: |

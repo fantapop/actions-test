@@ -1,0 +1,35 @@
+name: "Destroy Preview Deployments"
+on:
+  pull_request_target:
+    branches:
+      - "main"
+    types: 
+      - "closed"
+    paths:
+      - "the-ui/**"
+jobs:
+  debug:
+    runs-on: "ubuntu-latest"
+    steps:
+    - env:
+        EVENT_CONTEXT: ${{ toJSON(github.event) }}
+      run: echo $EVENT_CONTEXT
+
+  destroy_deployments:
+    name: "Delete environments"
+    runs-on: "ubuntu-latest"
+    steps:
+    - name: "Delete environments"
+      uses: "actions/github-script@v6"
+      env:
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      with:
+        script: |
+          ["staging", "prod"].forEach(async (cc_env) => {
+            await github.rest.repos.deleteAnEnvironment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              environment_name: `PR #${process.env.PR_NUMBER} (${cc_env} backend)`,
+            });
+          });    
+    
