@@ -100,6 +100,8 @@ jobs:
               transient_environment: true,
             });
 
+            console.log("DEBUG: deployment = ", deployment);
+
             await github.rest.repos.createDeploymentStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
