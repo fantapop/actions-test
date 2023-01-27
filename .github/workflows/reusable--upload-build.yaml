@@ -100,12 +100,10 @@ jobs:
               transient_environment: true,
             });
 
-            console.log("DEBUG: deployment = ", deployment);
-
             await github.rest.repos.createDeploymentStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              deployment_id: deployment.id,
+              deployment_id: deployment.data.id,
               status: "success",
               environment_url: `https://${process.env.THE_BUILD_ID}.${cc_env}.preview.example.com`,
               auto_inactive: true
