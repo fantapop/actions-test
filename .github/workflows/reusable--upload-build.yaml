@@ -91,20 +91,23 @@ jobs:
         THE_BUILD_ID: ${{ inputs.the_build_id }}
       with:
         script: |
-          let deployment = await github.rest.repos.createDeployment({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            ref: context.sha,
-            environment: `PR ${process.env.THE_BUILD_ID}`,
-            transient_environment: true,
-          });
+          ["staging"].forEach((cc_env) => {
+            let deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+              environment: `PR ${process.env.THE_BUILD_ID}`,
+              transient_environment: true,
+            });
 
-          await github.rest.repos.createDeploymentStatus({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            status: "success",
-            environment_url: `https://${process.env.THE_BUILD_ID}.staging.preview.example.com`,
-            auto_inactive: true
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deployment.id,
+              status: "success",
+              environment_url: `https://${process.env.THE_BUILD_ID}.${cc_env}.preview.example.com`,
+              auto_inactive: true
+            });
           });
 
     - uses: "actions/github-script@v6"
