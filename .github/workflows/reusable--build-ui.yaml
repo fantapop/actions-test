@@ -1,0 +1,81 @@
+name: "Build UI: Common"
+on:
+  workflow_call:
+    inputs:
+      the_build_id:
+        description: "A unique ID for this build. Typically either the PR number or the commit hash."
+        required: true
+        type: "string"
+      build_type:
+        description: "The type of build this is, used to determine which bucket it's uploaded to. One of ['preview', 'staging', 'production', 'other']."
+        required: true
+        type: "string"
+jobs:
+  build_ui:
+    name: "Build UI"
+    runs-on: "ubuntu-latest"
+
+    steps:
+    - name: "Check inputs"
+      uses: "actions/github-script@v6"
+      env:
+        BUILD_TYPE: ${{ inputs.build_type }}
+        THE_BUILD_ID: ${{ inputs.the_build_id }}
+      with:
+        script: |
+          const build_type = process.env.BUILD_TYPE;
+          if (!["preview", "staging", "production", "other"].includes(build_type)) {
+            core.setFailed(`Invalid input 'build_type': expected one of ['preview', 'staging', 'production', 'other'] but received '${build_type}'.`);
+          }
+
+          const the_build_id = process.env.THE_BUILD_ID;
+          if (!the_build_id) {
+            core.setFailed(`Invalid input 'the_build_id': expected non-empty string, but received ''`);
+          }
+          
+    - uses: "actions/checkout@v3"
+
+    - uses: "actions/setup-node@v3"
+      with:
+        node-version: "16.18.1"
+        cache: "yarn"
+        cache-dependency-path: "./the-ui/yarn.lock"
+
+    - name: "Save event & build metadata"
+      shell: "bash"
+      run: |
+        mkdir -p ./artifacts/out/
+        BUILD_ID="${{ inputs.the_build_id }}"
+        echo "$BUILD_ID" > ./artifacts/out/the_build_id
+
+    - name: "Install dependencies"
+      run: "yarn --cwd the-ui/ install --frozen-lockfile"
+
+    - name: "Build"
+      shell: "bash"
+      run: |
+        echo "<html><body>Hello, $THE_BUILD_ID</body></html>" > ./the-ui/public/about.html
+        cp -r ./the-ui/src/* ./the-ui/public
+
+      env:
+        NODE_ENV: "production"
+        NODE_SOURCE_MAPS: "enabled"
+        THE_BUILD_ID: ${{ inputs.the_build_id }}
+
+    - name: "Copy build output"
+      run: "cp -r ./the-ui/public/ ./artifacts/out/"
+
+    - name: "Save artifacts"
+      if: inputs.build_type != 'other'
+      uses: "actions/upload-artifact@v3"
+      with:
+        name: "some-ui-build"
+        path: "./artifacts/out/"
+        if-no-files-found: "error"
+        retention-days: 1
+
+    - name: "Summarize"
+      run: |
+        echo "### Build Successful" >> $GITHUB_STEP_SUMMARY
+        echo "Build Type: \`${{ inputs.build_type }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "Build ID: \`${{ inputs.the_build_id }}\`" >> $GITHUB_STEP_SUMMARY

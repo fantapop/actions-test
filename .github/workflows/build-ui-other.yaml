@@ -1,0 +1,16 @@
+name: "Build UI: Other"
+on:
+  push:
+    branches-ignore:
+      # TODO: change to master
+      - "main"
+      - "release-*"
+    paths: 
+      - "the-ui/**"
+jobs:
+  build:
+    name: "General Build"
+    uses: "./.github/workflows/reusable--build-ui.yaml"
+    with:
+      the_build_id: ${{ github.sha }}
+      build_type: "other"

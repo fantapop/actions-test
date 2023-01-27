@@ -1,0 +1,124 @@
+name: "Upload Build: Common"
+on:
+  workflow_call:
+    inputs:
+      the_build_id:
+        description: "A unique ID for this build. Typically either the PR number or the commit hash."
+        required: true
+        type: "string"
+      build_type:
+        description: "The type of build this is, used to determine which bucket it's uploaded to. One of ['preview', 'staging', 'production']."
+        required: true
+        type: "string"
+jobs:
+  upload:
+    name: "Upload Build"
+    runs-on: "ubuntu-latest"
+
+    steps:
+    - name: "Check inputs"
+      uses: "actions/github-script@v6"
+      env:
+        BUILD_TYPE: ${{ inputs.build_type }}
+        THE_BUILD_ID: ${{ inputs.the_build_id }}
+      with:
+        script: |
+          const build_type = process.env.BUILD_TYPE;
+          if (!["preview", "staging", "production"].includes(build_type)) {
+            core.setFailed(`Invalid input 'build_type': expected one of ['preview', 'staging', 'production'] but received '${build_type}'.`);
+          }
+
+          const the_build_id = process.env.THE_BUILD_ID;
+          if (!the_build_id) {
+            core.setFailed(`Invalid input 'the_build_id': expected non-empty string, but received ''`);
+          }
+          
+    - uses: "actions/checkout@v3"
+    
+    # The default actions/download-artifact action isn't available here, since the
+    # artifact we're interested in was uploaded in a separate workflow.
+    - name: "Download artifact"
+      uses: "actions/github-script@v6"
+      with:
+        script: |
+          let artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+             owner: context.repo.owner,
+             repo: context.repo.repo,
+             run_id: ${{github.event.workflow_run.id }},
+          });
+          let foundArtifact = artifacts.data.artifacts.find((artifact) => artifact.name == "some-ui-build");
+          if (!foundArtifact) {
+            core.setFailed(`Unable to find artifact named "some-ui-build" from workflow previous workflow ${{ github.event.workflow_run.html_url }}`);
+          }
+          let download = await github.rest.actions.downloadArtifact({
+             owner: context.repo.owner,
+             repo: context.repo.repo,
+             artifact_id: foundArtifact.id,
+             archive_format: "zip",
+          });
+          let fs = require("fs");
+          fs.writeFileSync("${{github.workspace}}/some-ui-build.zip", Buffer.from(download.data));
+
+    - name: "Extract artifact"
+      run: mkdir -p artifacts/in/ && unzip -d artifacts/in/ some-ui-build.zip && rm some-ui-build.zip
+
+    - name: "Determine bucket name"
+      id: "determine_bucket_name"
+      env:
+        BUILD_TYPE: ${{ inputs.build_type }}
+      run: |
+        case "$BUILD_TYPE" in
+          preview)
+            echo "bucket=cc-ui-previews" >> $GITHUB_OUTPUT
+            ;;
+          staging)
+            echo "bucket=TBD" >> $GITHUB_OUTPUT
+            ;;
+          production)
+            echo "bucket=TBD" >> $GITHUB_OUTPUT
+            ;;
+          *)
+            echo "::notice title=Cannot determine bucket name::Unexpected build type '$BUILD_TYPE'"
+        esac
+
+    - name: "Upload to GCS"
+      run: echo "pretend this is an upload to '${{ steps.determine_bucket_name.outputs.bucket }}'" && sleep 3
+
+    - name: "Create deployment"
+      if: inputs.build_type == 'preview'
+      uses: "actions/github-script@v6"
+      env:
+        THE_BUILD_ID: ${{ inputs.the_build_id }}
+      with:
+        script: |
+          let deployment = await github.rest.repos.createDeployment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: context.sha,
+            environment: `PR ${process.env.THE_BUILD_ID}`,
+            transient_environment: true,
+          });
+
+          await github.rest.repos.createDeploymentStatus({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            status: "success",
+            environment_url: `https://${process.env.THE_BUILD_ID}.staging.preview.example.com`,
+            auto_inactive: true
+          });
+
+    - uses: "actions/github-script@v6"
+      if: inputs.build_type == 'preview'
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.payload.workflow_run.pull_requests[0].number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: "Preview build available at https://${{ inputs.the_build_id }}.staging.preview.example.com .",
+          });
+
+    - name: "Summarize"
+      run: |
+        echo "### Upload Successful" >> $GITHUB_STEP_SUMMARY
+        echo "Build uploaded to \`gs://${{ steps.determine_bucket_name.outputs.bucket }}/builds/${{ inputs.the_build_id }}\`" >> $GITHUB_STEP_SUMMARY

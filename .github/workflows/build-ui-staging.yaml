@@ -1,0 +1,15 @@
+name: "Build UI: Staging"
+on:
+  push:
+    branches:
+      # TODO: change to master
+      - "main"
+    paths: 
+      - "the-ui/**"
+jobs:
+  build:
+    name: "Staging Build"
+    uses: "./.github/workflows/reusable--build-ui.yaml"
+    with:
+      the_build_id: ${{ github.sha }}
+      build_type: "staging"
