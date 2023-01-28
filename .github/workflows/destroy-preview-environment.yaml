@@ -28,7 +28,7 @@ jobs:
           const owner = context.repo.owner;
           const repo = context.repo.repo;
           ["staging", "prod"].forEach(async (cc_env) => {
-            let deployments = github.rest.repos.listDeployments({
+            let deployments = await github.rest.repos.listDeployments({
               owner: owner,
               repo: repo,
               environment: `PR #${process.env.THE_BUILD_ID} (${cc_env} backend)`,
