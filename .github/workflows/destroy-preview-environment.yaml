@@ -40,27 +40,15 @@ jobs:
               await github.rest.repos.createDeploymentStatus({
                 owner: owner,
                 repo: repo,
-                deployment_id: deployment.data.id,
+                deployment_id: deployment.id,
                 state: "inactive",
                 auto_inactive: true
               });
 
-
               await github.rest.repos.deleteDeployment({
                 owner: owner,
                 repo: repo,
-                deployment_id: deployment.data.id,
+                deployment_id: deployment.id,
               });
             });
           });
-
-      
-        # script: |
-        #   ["staging", "prod"].forEach(async (cc_env) => {
-        #     await github.rest.repos.deleteAnEnvironment({
-        #       owner: context.repo.owner,
-        #       repo: context.repo.repo,
-        #       environment_name: `PR #${process.env.PR_NUMBER} (${cc_env} backend)`,
-        #     });
-        #   });    
-    
