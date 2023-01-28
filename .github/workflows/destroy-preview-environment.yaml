@@ -16,10 +16,10 @@ jobs:
       run: echo $EVENT_CONTEXT
 
   destroy_deployments:
-    name: "Delete environments"
+    name: "Delete deployments"
     runs-on: "ubuntu-latest"
     steps:
-    - name: "Delete environments"
+    - name: "Delete deployments"
       uses: "actions/github-script@v6"
       env:
         PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -34,7 +34,9 @@ jobs:
               environment: `PR #${process.env.THE_BUILD_ID} (${cc_env} backend)`,
             });
 
-            deployments.forEach(async (deployment) => {
+            console.log("DBG: deployments = ", deployments);
+
+            deployments.data.forEach(async (deployment) => {
               await github.rest.repos.createDeploymentStatus({
                 owner: owner,
                 repo: repo,
