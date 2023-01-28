@@ -18,6 +18,8 @@ jobs:
   destroy_deployments:
     name: "Delete deployments"
     runs-on: "ubuntu-latest"
+    # DEBUG: does this fix the "can't delete an environment" issue?
+    permissions: "write-all"
     steps:
     - name: "Delete deployments"
       uses: "actions/github-script@v6"
