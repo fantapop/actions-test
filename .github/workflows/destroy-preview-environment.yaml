@@ -53,9 +53,9 @@ jobs:
               });
             });
 
-            await github.rest.repos.deleteAnDeployment({
+            await github.rest.repos.deleteAnEnvironment({
               owner: owner,
               repo: repo,
               environment_name: envName,
-            })
+            });
           });
