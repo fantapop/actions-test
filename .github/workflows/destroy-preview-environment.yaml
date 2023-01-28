@@ -31,7 +31,7 @@ jobs:
             let deployments = await github.rest.repos.listDeployments({
               owner: owner,
               repo: repo,
-              environment: `PR #${process.env.THE_BUILD_ID} (${cc_env} backend)`,
+              environment: `PR #${process.env.PR_NUMBER} (${cc_env} backend)`,
             });
 
             console.log("DBG: deployments = ", deployments);
