@@ -25,11 +25,40 @@ jobs:
         PR_NUMBER: ${{ github.event.pull_request.number }}
       with:
         script: |
+          const owner = context.repo.owner;
+          const repo = context.repo.repo;
           ["staging", "prod"].forEach(async (cc_env) => {
-            await github.rest.repos.deleteAnEnvironment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              environment_name: `PR #${process.env.PR_NUMBER} (${cc_env} backend)`,
+            let deployments = github.rest.repos.listDeployments({
+              owner: owner,
+              repo: repo,
+              environment: `PR #${process.env.THE_BUILD_ID} (${cc_env} backend)`,
             });
-          });    
+
+            deployments.forEach(async (deployment) => {
+              await github.rest.repos.createDeploymentStatus({
+                owner: owner,
+                repo: repo,
+                deployment_id: deployment.data.id,
+                state: "inactive",
+                auto_inactive: true
+              });
+
+
+              await github.rest.repos.deleteDeployment({
+                owner: owner,
+                repo: repo,
+                deployment_id: deployment.data.id,
+              });
+            });
+          });
+
+      
+        # script: |
+        #   ["staging", "prod"].forEach(async (cc_env) => {
+        #     await github.rest.repos.deleteAnEnvironment({
+        #       owner: context.repo.owner,
+        #       repo: context.repo.repo,
+        #       environment_name: `PR #${process.env.PR_NUMBER} (${cc_env} backend)`,
+        #     });
+        #   });    
     
