@@ -99,6 +99,7 @@ jobs:
               ref: process.env.BUILT_REF,
               environment: `PR #${process.env.THE_BUILD_ID} (${cc_env} backend)`,
               transient_environment: true,
+              required_contexts: [],
             });
 
             await github.rest.repos.createDeploymentStatus({
