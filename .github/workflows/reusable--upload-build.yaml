@@ -110,6 +110,7 @@ jobs:
         BUILT_REF: ${{ github.event.workflow_run.head_sha }}
       with:
         script: |
+          console.log("context.repo = ", context.repo);
           ["staging", "prod"].forEach(async (cc_env) => {
             let deployment = await github.rest.repos.createDeployment({
               owner: context.repo.owner,
