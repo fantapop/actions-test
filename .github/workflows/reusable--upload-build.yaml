@@ -37,7 +37,7 @@ jobs:
 
     - name: "Download artifact (with action)"
       if: ${{ !github.event.workflow_run.id }}
-      uses: "actions/download-artifact"
+      uses: "actions/download-artifact@v3"
       with:
         name: "some-ui-build"
         path: "artifacts/in/"
