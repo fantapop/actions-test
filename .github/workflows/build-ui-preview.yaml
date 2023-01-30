@@ -18,7 +18,6 @@ jobs:
     name: "Preview Build"
     uses: "./.github/workflows/reusable--build-ui.yaml"
     secrets: {}
-    permissions: {}
     with:
       the_build_id: ${{ github.event.pull_request.number }}
       build_type: "preview"
