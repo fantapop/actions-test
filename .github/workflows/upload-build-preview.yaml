@@ -14,6 +14,13 @@ on:
     workflows: [ "Build UI: Preview" ]
     types: [ "completed" ]
 jobs:
+  debug:
+    runs-on: "ubuntu-latest"
+    steps:
+    - env:
+        EVENT_CONTEXT: ${{ toJSON(github.event) }}
+      run: echo $EVENT_CONTEXT
+
   upload:
     uses: "./.github/workflows/reusable--upload-build.yaml"
     with:
