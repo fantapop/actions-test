@@ -14,11 +14,12 @@ jobs:
   upload:
     name: "Upload Build"
     runs-on: "ubuntu-latest"
-    permissions:
-      actions: "read"
-      contents: "read"
-      id-token: "write"
-      deployments: "write"
+    permissions: "write-all"
+      # actions: "read"
+      # contents: "read"
+      # id-token: "write"
+      # deployments: "write"
+      # issues: "write"
 
     steps:
     - name: "Check inputs"
