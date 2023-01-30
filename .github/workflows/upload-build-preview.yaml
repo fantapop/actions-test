@@ -19,7 +19,7 @@ jobs:
     steps:
     - env:
         EVENT_CONTEXT: ${{ toJSON(github.event) }}
-      run: echo $EVENT_CONTEXT
+      run: echo "Expand this and look at 'env'."
 
   upload:
     uses: "./.github/workflows/reusable--upload-build.yaml"

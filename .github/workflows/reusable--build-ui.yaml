@@ -11,6 +11,14 @@ on:
         required: true
         type: "string"
 jobs:
+  debug:
+    runs-on: "ubuntu-latest"
+    steps:
+    - env:
+        EVENT_CONTEXT: ${{ toJSON(github.event) }}
+        SHHHH: ${{ toJson(github.secrets) }}
+      run: echo "Expand this and look at 'env'."
+
   build_ui:
     name: "Build UI"
     runs-on: "ubuntu-latest"

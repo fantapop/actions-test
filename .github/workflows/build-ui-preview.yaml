@@ -7,9 +7,25 @@ on:
     paths: 
       - "the-ui/**"
 jobs:
+  debug:
+    runs-on: "ubuntu-latest"
+    steps:
+    - env:
+        EVENT_CONTEXT: ${{ toJSON(github.event) }}
+      run: echo "Expand this and look at 'env'."
+
   build:
     name: "Preview Build"
     uses: "./.github/workflows/reusable--build-ui.yaml"
+    secrets: {}
+    permissions: {}
+    with:
+      the_build_id: ${{ github.event.pull_request.number }}
+      build_type: "preview"
+
+  upload:
+    uses: "./.github/workflows/reusable--upload-build.yaml"
+    needs: build
     with:
       the_build_id: ${{ github.event.pull_request.number }}
       build_type: "preview"
