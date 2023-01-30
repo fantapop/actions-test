@@ -1,14 +1,15 @@
 name: "Upload Build: Preview"
-permissions:
-  actions: "read"
-  packages: "read"
-  repository-projects: "read"
-  security-events: "read"
-  statuses: "read"
-  contents: "read"
-  issues: "write"
-  pull-requests: "write"
-  deployments: "write"
+# permissions:
+#   actions: "read"
+#   packages: "read"
+#   repository-projects: "read"
+#   security-events: "read"
+#   statuses: "read"
+#   contents: "read"
+#   issues: "write"
+#   pull-requests: "write"
+#   deployments: "write"
+permissions: "write-all"
 on:
   workflow_run:
     workflows: [ "Build UI: Preview" ]
