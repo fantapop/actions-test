@@ -107,7 +107,7 @@ jobs:
       uses: "actions/github-script@v6"
       env:
         THE_BUILD_ID: ${{ inputs.the_build_id }}
-        BUILT_REF: ${{ github.event.workflow_run.head_sha }}
+        BUILT_REF: ${{ github.event.workflow_run.head_sha || github.sha }}
       with:
         script: |
           console.log("context.repo = ", context.repo);
