@@ -8,14 +8,8 @@ on:
         type: string
         
 jobs:
-  debug:
-    runs-on: ubuntu-latest
-    steps:
-    - run: echo "expand this and look for 'env'."
-      env:
-        event: ${{ toJSON(github.event) }}
-
   foo:
+    name: "Create PR for SQL User"
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
