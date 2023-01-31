@@ -64,16 +64,17 @@ jobs:
 
   cancel:
     runs-on: "ubuntu-latest"
-    if: needs.wait_for_build.result == 'cancelled' || needs.wait_for_build.result == 'failed'
+    if: needs.wait_for_build.result == 'cancelled' || needs.wait_for_build.result == 'failed' || needs.upload.result == 'cancelled' || needs.upload.result == 'failed'
     needs:
     - announce
     - wait_for_build
+    - upload
     steps:
     - uses: "actions/github-script@v6"
       env:
         STAGING_ID: ${{ needs.announce.outputs.staging_deployment_id }}
         PROD_ID: ${{ needs.announce.outputs.prod_deployment_id }}
-        RESULT: ${{ needs.wait_for_build.result }}
+        RESULT: ${{ needs.wait_for_build.result != 'succeeded'  && needs.wait_for_build.result || needs.upload.result }}
       with:
         script: |
           [
@@ -120,5 +121,5 @@ jobs:
     uses: "./.github/workflows/reusable--upload-build.yaml"
     needs: wait_for_build
     with:
-      the_build_id: ${{ github.event.workflow_run.pull_requests[0].number }}
+      the_build_id: ${{ github.event.pull_request.number }}
       build_type: "preview"
