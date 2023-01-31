@@ -23,6 +23,16 @@ jobs:
         # Always check out 'main'
         ref: main
 
+    - name: Validate email address
+      env:
+        CRL_EMAIL: ${{ inputs.crl_email }}
+      shell: bash
+      run: |
+        if [[ "$CRL_EMAIL" != *@cockroachlabs.com ]]; then
+          echo "::error title='Invalid email'::Email address '$CRL_EMAIL' must end in '@cockroachlabs.com'"
+          exit 1
+        fi
+
     - name: Configure git
       run: |
         git config user.name github-actions
@@ -30,23 +40,29 @@ jobs:
 
     - name: Define break glass ID
       id: breakglass_id
-      run: echo id=$(date +%F)-${{ github.triggering_actor }}-${{ github.run_id }} >> $GITHUB_OUTPUT
+      run: echo breakglass_id=$(date +%F)-${{ github.triggering_actor }}-${{ github.run_id }} >> $GITHUB_ENV
 
     - name: Branch
-      run: git switch --create breakglass/${{ steps.breakglass_id.outputs.id }}
+      run: git switch --create breakglass/${{ env.breakglass_id }}
 
     - name: Add user
       run: |
         echo "# CRL user: ${{ inputs.crl_email }}" >> ./some/nested/config/users.yaml
-        echo '"${{ steps.breakglass_id.outputs.id }}": "breakglass-${{ steps.breakglass_id.outputs.id }}"' >> ./some/nested/config/users.yaml
+        echo '"${{ env.breakglass_id }}": "breakglass-${{ env.breakglass_id }}"' >> ./some/nested/config/users.yaml
 
     - name: Commit
-      run: "git commit -a -m 'BREAK GLASS: emergency access for ${{ github.triggering_actor }}'"
+      run: "git commit -a -m 'BREAK GLASS: emergency access for @${{ github.triggering_actor }}'"
 
     - name: Push
       run: git push origin HEAD
 
     - name: Open PR
-      run: gh pr create --head $(git branch --show-current) --fill --label "Break Glass"
+      run: |
+        gh pr create \
+          --head $(git branch --show-current) \
+          --title "$(git show --format=%s)" \
+          --body "Requested by @${{ github.triggering_actor }}." \
+          --reviewer ${{ github.triggering_actor }} \
+          --label "Break Glass"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
