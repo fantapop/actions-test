@@ -68,12 +68,12 @@ jobs:
     needs:
     - announce
     - wait_for_build
+    env:
+      STAGING_ID: ${{ jobs.announce.outputs.staging_deployment_id }}
+      PROD_ID: ${{ jobs.announce.outputs.prod_deployment_id }}
+      RESULT: ${{ jobs.wait_for_build.result }}
     steps:
     - uses: "actions/github-script@v6"
-      env:
-        STAGING_ID: ${{ jobs.announce.outputs.staging_deployment_id }}
-        PROD_ID: ${{ jobs.announce.outputs.prod_deployment_id }}
-        RESULT: ${{ jobs.wait_for_build.result }}
       with:
         script: |
           [
