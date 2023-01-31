@@ -47,6 +47,6 @@ jobs:
       run: git push origin HEAD
 
     - name: Open PR
-      run: gh pr create --head --fill --label "Break Glass"
+      run: gh pr create --head $(git branch --show-current) --fill --label "Break Glass"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
