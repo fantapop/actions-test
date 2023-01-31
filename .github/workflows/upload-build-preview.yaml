@@ -59,7 +59,7 @@ jobs:
               environment_url: `https://${process.env.THE_BUILD_ID}.${cc_env}.preview.example.com`,
             });
 
-            github.core.setOutput(`${cc_env}_deployment_id`, deployment.data.id);
+            core.setOutput(`${cc_env}_deployment_id`, deployment.data.id);
           });
 
   cancel:
