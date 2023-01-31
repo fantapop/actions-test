@@ -34,7 +34,7 @@ jobs:
     - uses: "actions/github-script@v6"
       env:
         THE_BUILD_ID: ${{ github.event.pull_request.number }}
-        BUILT_REF: ${{ github.sha }}
+        BUILT_REF: ${{ github.event.pull_request.head.sha }}
       with:
         script: |
           ["staging", "prod"].forEach(async (cc_env) => {
@@ -62,15 +62,18 @@ jobs:
     if: github.event.pull_request.state == 'open'
     steps:
     - uses: "actions/github-script@v6"
+      env:
+        BUILT_REF: ${{ github.event.pull_request.head.sha }}
       with:
         retries: 3
         retry-exempt-status-codes: 400,401,403,422
         script: |
+          console.log("context.issue === ", context.issue);
           const workflowRuns = await github.rest.actions.listWorkflowRuns({
             owner: context.repo.owner,
             repo: context.repo.repo,
             workflow_id: "./.github/workflows/build-ui-preview.yaml",
-            ref: context.sha,
+            ref: process.env.BUILT_REF,
           })
           console.log("workflowRuns === ", workflowRuns);
   
