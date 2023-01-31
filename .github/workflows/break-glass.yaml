@@ -29,7 +29,7 @@ jobs:
       shell: bash
       run: |
         if [[ "$CRL_EMAIL" != *@cockroachlabs.com ]]; then
-          echo "::error title='Invalid email'::Email address '$CRL_EMAIL' must end in '@cockroachlabs.com'"
+          echo "::error title=Invalid email::Email address '$CRL_EMAIL' must end in '@cockroachlabs.com'."
           exit 1
         fi
 
@@ -61,7 +61,7 @@ jobs:
         gh pr create \
           --head $(git branch --show-current) \
           --title "$(git show --format=%s)" \
-          --body "Requested by @${{ github.triggering_actor }}." \
+          --body "Requested by @${{ github.triggering_actor }} (${{ inputs.crl_email }})." \
           --reviewer ${{ github.triggering_actor }} \
           --label "Break Glass"
       env:
