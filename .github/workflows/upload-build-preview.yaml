@@ -30,8 +30,12 @@ jobs:
   announce:
     runs-on: "ubuntu-latest"
     if: github.event.pull_request.state == 'open'
+    outputs:
+      staging_deployment_id: ${{ steps.create_deployments.staging_deployment_id }}
+      prod_deployment_id: ${{ steps.create_deployments.prod_deployment_id }}
     steps:
     - uses: "actions/github-script@v6"
+      id: create_deployments
       env:
         THE_BUILD_ID: ${{ github.event.pull_request.number }}
         BUILT_REF: ${{ github.event.pull_request.head.sha }}
@@ -53,33 +57,68 @@ jobs:
               deployment_id: deployment.data.id,
               state: "in_progress",
               environment_url: `https://${process.env.THE_BUILD_ID}.${cc_env}.preview.example.com`,
-              auto_inactive: true
+            });
+
+            github.core.setOutput(`${cc_env}_deployment_id`, deployment.data.id);
+          });
+
+  cancel:
+    runs-on: "ubuntu-latest"
+    if: jobs.wait_for_build.result == 'cancelled' || jobs.wait_for_build.result == 'failed'
+    needs:
+    - announce
+    - wait_for_build
+    steps:
+    - uses: "actions/github-script@v6"
+      env:
+        STAGING_ID: ${{ jobs.announce.outputs.staging_deployment_id }}
+        PROD_ID: ${{ jobs.announce.outputs.prod_deployment_id }}
+        RESULT: ${{ jobs.wait_for_build.result }}
+      with:
+        script: |
+          [
+            process.env.STAGING_ID,
+            process.env.PROD_ID,
+          ].forEach(async ([cc_env, deploymentId]) => {
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deploymentId,
+              state: process.env.RESULT === "cancelled" ? "inactive" : "failure",
             });
           });
 
-  wait-for-build:
+  wait_for_build:
     runs-on: "ubuntu-latest"
     if: github.event.pull_request.state == 'open'
     steps:
     - uses: "actions/github-script@v6"
+      timeout-minutes: 20
       env:
         BUILT_REF: ${{ github.event.pull_request.head.sha }}
       with:
-        retries: 5
         retry-exempt-status-codes: 400,401,403,422
         script: |
-          console.log("context.issue === ", context.issue);
-          const workflowRuns = await github.rest.actions.listWorkflowRuns({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            workflow_id: ".github/workflows/build-ui-preview.yaml",
-            ref: process.env.BUILT_REF,
-          })
-          console.log("workflowRuns === ", workflowRuns);
-  
+          const { setTimeout } = require("node:timers/promises");
+          while (true) {
+            try {
+              const workflowRuns = await github.rest.actions.listWorkflowRuns({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: ".github/workflows/build-ui-preview.yaml",
+                ref: process.env.BUILT_REF,
+              })
+              console.log("found workflow runs!", workflowRuns);
+              break;
+            } catch (e) {
+              core.info(e);
+              await setTimeout(1_000);
+            }
+          }
+
   upload:
     uses: "./.github/workflows/reusable--upload-build.yaml"
-    needs: wait-for-build
+    needs: wait_for_build
     with:
       the_build_id: ${{ github.event.workflow_run.pull_requests[0].number }}
       build_type: "preview"
