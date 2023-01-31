@@ -37,8 +37,8 @@ jobs:
 
     - name: Add user
       run: |
-        echo "# CRL user: ${{ inputs.crl_email }}" >> ./some/nested/config/users.json
-        echo '"${{ steps.breakglass_id.outputs.id }}": "breakglass-${{ steps.breakglass_id.outputs.id }}"' >> ./some/nested/config/users.json
+        echo "# CRL user: ${{ inputs.crl_email }}" >> ./some/nested/config/users.yaml
+        echo '"${{ steps.breakglass_id.outputs.id }}": "breakglass-${{ steps.breakglass_id.outputs.id }}"' >> ./some/nested/config/users.yaml
 
     - name: Commit
       run: "git commit -a -m 'BREAK GLASS: emergency access for ${{ github.triggering_actor }}'"
