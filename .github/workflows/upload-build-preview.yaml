@@ -65,14 +65,14 @@ jobs:
       env:
         BUILT_REF: ${{ github.event.pull_request.head.sha }}
       with:
-        retries: 3
+        retries: 5
         retry-exempt-status-codes: 400,401,403,422
         script: |
           console.log("context.issue === ", context.issue);
           const workflowRuns = await github.rest.actions.listWorkflowRuns({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            workflow_id: "./.github/workflows/build-ui-preview.yaml",
+            workflow_id: ".github/workflows/build-ui-preview.yaml",
             ref: process.env.BUILT_REF,
           })
           console.log("workflowRuns === ", workflowRuns);
