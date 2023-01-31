@@ -13,23 +13,40 @@ jobs:
     steps:
     - run: echo "expand this and look for 'env'."
       env:
-        event: github.event
+        event: ${{ toJSON(github.event) }}
+
   foo:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+      with:
+        # Always check out 'main'
+        ref: main
+
+    - name: Configure git
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+
     - name: Define break glass ID
       id: breakglass_id
       run: echo id=$(date +%F)-${{ github.run_id }}-${{ github.triggering_actor }} >> $GITHUB_OUTPUT
+
     - name: Branch
       run: git switch --create breakglass/${{ steps.breakglass_id.outputs.id }}
+
     - name: Add user
       run: |
         echo "# CRL user: ${{ inputs.crl_email }}" >> ./some/nested/config/users.json
         echo '"${{ steps.breakglass_id.outputs.id }}": "breakglass-${{ steps.breakglass_id.outputs.id }}"' >> ./some/nested/config/users.json
+
     - name: Commit
       run: "git commit -a -m 'BREAK GLASS: emergency access for ${{ github.triggering_actor }}'"
+
     - name: Push
       run: git push origin HEAD
+
     - name: Open PR
       run: gh pr create --head --fill --label "Break Glass"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
