@@ -11,17 +11,48 @@ name: "Upload Build: Preview"
 #   deployments: "write"
 permissions: "write-all"
 on:
-  workflow_run:
-    workflows: [ "Build UI: Preview" ]
-    types: [ "completed" ]
+  pull_request_target:
+    branches:
+      # TODO: change this to "master" when things stabilize
+      - "main"
+    paths: 
+      - "the-ui/**"
 jobs:
   debug:
     runs-on: "ubuntu-latest"
     steps:
     - env:
         EVENT_CONTEXT: ${{ toJSON(github.event) }}
+        sha: github.sha
+        head_sha: github.head_sha
       run: echo "Expand this and look at 'env'."
 
+  announce:
+    runs-on: "ubuntu-latest"
+    steps:
+    - uses: "actions/github-script@v6"
+      with:
+        script: |
+          ["staging", "prod"].forEach(async (cc_env) => {
+            let deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: process.env.BUILT_REF,
+              environment: `PR #${process.env.THE_BUILD_ID} (${cc_env} backend)`,
+              transient_environment: true,
+              required_contexts: [],
+            });
+
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deployment.data.id,
+              state: "in_progress",
+              environment_url: `https://${process.env.THE_BUILD_ID}.${cc_env}.preview.example.com`,
+              auto_inactive: true
+            });
+          });
+  
   upload:
     uses: "./.github/workflows/reusable--upload-build.yaml"
     with:
