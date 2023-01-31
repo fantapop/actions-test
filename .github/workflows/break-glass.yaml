@@ -3,13 +3,13 @@ on:
   workflow_dispatch:
     inputs:
       crl_email:
-        description: "CockroachLabs Email Address"
+        description: CockroachLabs Email Address
         required: true
         type: string
         
 jobs:
   foo:
-    name: "Create PR for SQL User"
+    name: Create PR for SQL User
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -51,12 +51,12 @@ jobs:
       run: git push origin HEAD
 
     - name: Open PR
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         gh pr create \
           --head $(git branch --show-current) \
           --title "$(git show --no-patch --format=%s)" \
           --body "Requested by @${{ github.triggering_actor }} (${{ inputs.crl_email }})." \
           --reviewer ${{ github.triggering_actor }} \
-          --label "Break Glass"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          --label "Break Glass" >> $GITHUB_STEP_SUMMARY
