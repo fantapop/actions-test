@@ -29,8 +29,12 @@ jobs:
 
   announce:
     runs-on: "ubuntu-latest"
+    if: github.event.pull_request.state == 'open'
     steps:
     - uses: "actions/github-script@v6"
+      env:
+        THE_BUILD_ID: ${{ github.event.pull_request.number }}
+        BUILT_REF: ${{ github.sha }}
       with:
         script: |
           ["staging", "prod"].forEach(async (cc_env) => {
@@ -52,9 +56,27 @@ jobs:
               auto_inactive: true
             });
           });
+
+  wait-for-build:
+    runs-on: "ubuntu-latest"
+    if: github.event.pull_request.state == 'open'
+    steps:
+    - uses: "actions/github-script@v6"
+      with:
+        retries: 3
+        retry-exempt-status-codes: 400,401,403,422
+        script: |
+          const workflowRuns = await github.rest.actions.listWorkflowRuns({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            workflow_id: "./.github/workflows/build-ui-preview.yaml",
+            ref: context.sha,
+          })
+          console.log("workflowRuns === ", workflowRuns);
   
   upload:
     uses: "./.github/workflows/reusable--upload-build.yaml"
+    needs: wait-for-build
     with:
       the_build_id: ${{ github.event.workflow_run.pull_requests[0].number }}
       build_type: "preview"

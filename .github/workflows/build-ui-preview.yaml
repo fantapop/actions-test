@@ -23,16 +23,16 @@ jobs:
       the_build_id: ${{ github.event.pull_request.number }}
       build_type: "preview"
 
-  upload:
-    uses: "./.github/workflows/reusable--upload-build.yaml"
-    needs: build
-    # permissions:
-    #   deployments: "write"
-    #   id-token: "write"
-    #   issues: "write"
-    #   contents: "read"
-    #   repository-projects: "write"
-    #   pull-requests: "write"
-    with:
-      the_build_id: ${{ github.event.pull_request.number }}
-      build_type: "preview"
+  # upload:
+  #   uses: "./.github/workflows/reusable--upload-build.yaml"
+  #   needs: build
+  #   # permissions:
+  #   #   deployments: "write"
+  #   #   id-token: "write"
+  #   #   issues: "write"
+  #   #   contents: "read"
+  #   #   repository-projects: "write"
+  #   #   pull-requests: "write"
+  #   with:
+  #     the_build_id: ${{ github.event.pull_request.number }}
+  #     build_type: "preview"
