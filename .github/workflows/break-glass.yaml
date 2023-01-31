@@ -30,7 +30,7 @@ jobs:
 
     - name: Define break glass ID
       id: breakglass_id
-      run: echo id=$(date +%F)-${{ github.run_id }}-${{ github.triggering_actor }} >> $GITHUB_OUTPUT
+      run: echo id=$(date +%F)-${{ github.triggering_actor }}-${{ github.run_id }} >> $GITHUB_OUTPUT
 
     - name: Branch
       run: git switch --create breakglass/${{ steps.breakglass_id.outputs.id }}
