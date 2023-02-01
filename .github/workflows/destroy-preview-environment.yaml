@@ -30,17 +30,16 @@ jobs:
           const owner = context.repo.owner;
           const repo = context.repo.repo;
           ["staging", "prod"].forEach(async (cc_env) => {
-            const req = {
-                owner: owner,
-                repo: repo,
-                environment: `UI Previews (${cc_env} backend)`,
-            };
-            const deployments = github.rest.paginate.iterator(github.rest.repos.listDeployments, req);
+            const deployments = github.rest.paginate.iterator(github.rest.repos.listDeployments, {
+              owner: owner,
+              repo: repo,
+              environment: `UI Previews (${cc_env} backend)`,
+            });
 
             for await (const deployment of deployments) {
               if (deployment.payload.pr_number !== ${{ github.event.pull_request.number }}) {
                 console.log("Skipping not-matching deployment:", deployment);
-                continue
+                continue;
               }
 
               console.log("!!! found matching deployment:", deployment);
@@ -58,3 +57,4 @@ jobs:
                 deployment_id: deployment.id,
               });
             }
+          });
