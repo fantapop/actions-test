@@ -1,8 +1,4 @@
 name: "Upload Build: Preview"
-permissions:
-  contents: "read"
-  id-token: "write"
-  deployments: "write"
 on:
   pull_request_target:
     branches:
