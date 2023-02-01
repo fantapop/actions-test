@@ -28,6 +28,7 @@ jobs:
       run: echo "Expand this and look at 'env'."
 
   announce:
+    name: "Announce deployments"
     runs-on: "ubuntu-latest"
     if: github.event.pull_request.state == 'open'
     outputs:
@@ -62,25 +63,25 @@ jobs:
             core.setOutput(`${cc_env}_deployment_id`, deployment.data.id);
           });
 
-  cancel:
+  cleanup:
+    name: "Clean up"
     runs-on: "ubuntu-latest"
-    if: needs.wait_for_build.result == 'cancelled' || needs.wait_for_build.result == 'failed' || needs.upload.result == 'cancelled' || needs.upload.result == 'failed'
+    if: always()
     needs:
     - announce
     - wait_for_build
     - upload
     steps:
-    - uses: "actions/github-script@v6"
+    - name: "Cancel in-progress deployments"
+      uses: "actions/github-script@v6"
+      if: contains(needs.*.result, "cancelled") || contains(needs.*.result, "failure")
       env:
         STAGING_ID: ${{ needs.announce.outputs.staging_deployment_id }}
         PROD_ID: ${{ needs.announce.outputs.prod_deployment_id }}
         RESULT: ${{ needs.wait_for_build.result != 'succeeded'  && needs.wait_for_build.result || needs.upload.result }}
       with:
         script: |
-          [
-            process.env.STAGING_ID,
-            process.env.PROD_ID,
-          ].forEach(async ([cc_env, deploymentId]) => {
+          [ process.env.STAGING_ID, process.env.PROD_ID ].forEach(async ([cc_env, deploymentId]) => {
             await github.rest.repos.createDeploymentStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -90,6 +91,7 @@ jobs:
           });
 
   wait_for_build:
+    name: "Wait for build to complete"
     runs-on: "ubuntu-latest"
     if: github.event.pull_request.state == 'open'
     steps:
@@ -109,7 +111,7 @@ jobs:
                 workflow_id: ".github/workflows/build-ui-preview.yaml",
                 ref: process.env.BUILT_REF,
               })
-              console.log("found workflow runs!", workflowRuns);
+              console.log("found workflow runs!", workflowRuns && workflowRuns.data && workflowRuns.data.workflow_runs);
               break;
             } catch (e) {
               core.info(e);
