@@ -41,7 +41,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: process.env.BUILT_REF,
-              environment: `UI Preview (${cc_env} backend)`,
+              environment: `UI Previews (${cc_env} backend)`,
               transient_environment: false,
               auto_merge: false,
               payload: {

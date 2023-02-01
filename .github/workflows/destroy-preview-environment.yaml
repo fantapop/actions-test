@@ -31,22 +31,26 @@ jobs:
           const owner = context.repo.owner;
           const repo = context.repo.repo;
           ["staging", "prod"].forEach(async (cc_env) => {
-            const envName = `PR #${process.env.PR_NUMBER} (${cc_env} backend)`;
-            let deployments = await github.rest.repos.listDeployments({
-              owner: owner,
-              repo: repo,
-              environment: envName,
-            });
+            const req = {
+                owner: owner,
+                repo: repo,
+                environment: `UI Previews (${cc_env} backend)`,
+            };
+            const deployments = github.rest.paginate.iterator(repos.listDeployments, req);
 
-            console.log("DBG: deployments = ", deployments);
+            for await (const deployment of deployments) {
+              if (deployment.payload.pr_number !== ${{ github.event.pull_request.number }}) {
+                console.log("Skipping not-matching deployment:", deployment);
+                continue
+              }
 
-            deployments.data.forEach(async (deployment) => {
+              console.log("!!! found matching deployment:", deployment);
               await github.rest.repos.createDeploymentStatus({
                 owner: owner,
                 repo: repo,
                 deployment_id: deployment.id,
                 state: "inactive",
-                auto_inactive: true
+                auto_inactive: false
               });
 
               await github.rest.repos.deleteDeployment({
@@ -54,5 +58,4 @@ jobs:
                 repo: repo,
                 deployment_id: deployment.id,
               });
-            });
-          });
+            }
