@@ -1,4 +1,4 @@
-name: "Destroy Preview Deployments"
+name: "Delete Preview Deployments"
 on:
   pull_request_target:
     branches:
@@ -8,18 +8,9 @@ on:
     paths:
       - "the-ui/**"
 jobs:
-  debug:
-    runs-on: "ubuntu-latest"
-    steps:
-    - env:
-        EVENT_CONTEXT: ${{ toJSON(github.event) }}
-      run: echo $EVENT_CONTEXT
-
-  destroy_deployments:
+  delete_deployments:
     name: "Delete deployments"
     runs-on: "ubuntu-latest"
-    # DEBUG: does this fix the "can't delete an environment" issue?
-    permissions: "write-all"
     steps:
     - name: "Delete deployments"
       uses: "actions/github-script@v6"
@@ -34,26 +25,26 @@ jobs:
               environment: `UI Previews (${cc_env} backend)`,
             });
 
-            for await (const deployment of deployments) {
-              console.log("received deployment:", deployment);
-              if (deployment.payload.pr_number !== ${{ github.event.pull_request.number }}) {
-                console.log("Skipping not-matching deployment:", deployment);
-                continue;
+            for await (const page of deployments) {
+              for (const deployment of page.data) {
+                if (deployment.payload.pr_number !== ${{ github.event.pull_request.number }}) {
+                  continue;
+                }
+
+                core.info(`deactivating and deleting deployment ID '${deployment.id}'`)
+                await github.rest.repos.createDeploymentStatus({
+                  owner: owner,
+                  repo: repo,
+                  deployment_id: deployment.id,
+                  state: "inactive",
+                  auto_inactive: false
+                });
+
+                await github.rest.repos.deleteDeployment({
+                  owner: owner,
+                  repo: repo,
+                  deployment_id: deployment.id,
+                });
               }
-
-              console.log("!!! found matching deployment:", deployment);
-              await github.rest.repos.createDeploymentStatus({
-                owner: owner,
-                repo: repo,
-                deployment_id: deployment.id,
-                state: "inactive",
-                auto_inactive: false
-              });
-
-              await github.rest.repos.deleteDeployment({
-                owner: owner,
-                repo: repo,
-                deployment_id: deployment.id,
-              });
             }
           });
