@@ -9,8 +9,8 @@ jobs:
     steps:
     - env:
         EVENT_CONTEXT: ${{ toJSON(github.event) }}
-        sha: github.sha
-        head_sha: github.head_sha
+        sha: ${{github.sha}}
+        head_sha: ${{github.head_sha}}
       run: echo "Expand this and look at 'env'."
 
   upload:
