@@ -94,8 +94,11 @@ jobs:
     name: "Wait for build to complete"
     runs-on: "ubuntu-latest"
     if: github.event.pull_request.state == 'open'
+    outputs:
+      run_id: ${{ steps.get_run_id.run_id }}
     steps:
     - uses: "actions/github-script@v6"
+      id: get_run_id
       timeout-minutes: 20
       env:
         BUILT_REF: ${{ github.event.pull_request.head.sha }}
@@ -104,6 +107,7 @@ jobs:
         script: |
           const { setTimeout } = require("node:timers/promises");
           while (true) {
+            console.log("polling...");
             try {
               const workflowRuns = await github.rest.actions.listWorkflowRuns({
                 owner: context.repo.owner,
@@ -111,13 +115,29 @@ jobs:
                 workflow_id: ".github/workflows/build-ui-preview.yaml",
                 head_sha: process.env.BUILT_REF,
                 event: "pull_request",
-                status: "completed"
+                status: "completed",
               });
 
               if (workflowRuns.total_count > 0) {
                 console.log("found workflow runs!", workflowRuns && workflowRuns.data && workflowRuns.data.workflow_runs);
-                break;
+                const run = workflowRuns[0];
+                switch (run.conclusion) {
+                  case "success":
+                    core.setOutput("run_id", run.id);
+                    return;
+                  case "failure":
+                    core.warning("UI build failed; nothing to upload");
+                    return;
+                  case "cancelled"
+                    core.info("UI build canceled; nothing to upload");
+                    return;
+                  default:
+                    core.setFailed(`unexpected conclusion '${run.conclusion}'`);
+                    return;
+                }
               }
+
+              await setTimeout(1_000);
             } catch (e) {
               core.info(e);
               await setTimeout(1_000);
@@ -127,6 +147,7 @@ jobs:
   upload:
     uses: "./.github/workflows/reusable--upload-build.yaml"
     needs: wait_for_build
+    if: needs.wait_for_build.outputs.run_id
     with:
       the_build_id: ${{ github.event.pull_request.number }}
       build_type: "preview"
