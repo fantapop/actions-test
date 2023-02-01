@@ -122,7 +122,7 @@ jobs:
 
               if (workflowRuns.data.total_count > 0) {
                 console.log("found workflow runs!", workflowRuns && workflowRuns.data && workflowRuns.data.workflow_runs);
-                const run = workflowRuns[0];
+                const run = workflowRuns.data.workflow_runs[0];
                 switch (run.conclusion) {
                   case "success":
                     core.setOutput("run_id", run.id);
