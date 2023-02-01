@@ -35,7 +35,7 @@ jobs:
                 repo: repo,
                 environment: `UI Previews (${cc_env} backend)`,
             };
-            const deployments = github.rest.paginate.iterator(repos.listDeployments, req);
+            const deployments = github.rest.paginate.iterator(github.rest.repos.listDeployments, req);
 
             for await (const deployment of deployments) {
               if (deployment.payload.pr_number !== ${{ github.event.pull_request.number }}) {
