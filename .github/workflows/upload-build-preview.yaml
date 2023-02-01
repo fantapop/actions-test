@@ -118,7 +118,9 @@ jobs:
                 status: "completed",
               });
 
-              if (workflowRuns.total_count > 0) {
+              console.log("res = ", workflowRuns);
+
+              if (workflowRuns.data.total_count > 0) {
                 console.log("found workflow runs!", workflowRuns && workflowRuns.data && workflowRuns.data.workflow_runs);
                 const run = workflowRuns[0];
                 switch (run.conclusion) {
