@@ -1,15 +1,8 @@
 name: "Upload Build: Preview"
-# permissions:
-#   actions: "read"
-#   packages: "read"
-#   repository-projects: "read"
-#   security-events: "read"
-#   statuses: "read"
-#   contents: "read"
-#   issues: "write"
-#   pull-requests: "write"
-#   deployments: "write"
-permissions: "write-all"
+permissions:
+  contents: "read"
+  id-token: "write"
+  deployments: "write"
 on:
   pull_request_target:
     branches:
@@ -17,6 +10,11 @@ on:
       - "main"
     paths: 
       - "the-ui/**"
+    types:
+      - "opened"
+      - "reopened"
+      - "synchronize"
+      - "closed"
 jobs:
   debug:
     runs-on: "ubuntu-latest"
@@ -26,6 +24,10 @@ jobs:
         sha: github.sha
         head_sha: github.head_sha
       run: echo "Expand this and look at 'env'."
+
+  destroy_environments:
+    name: "Destroy preview environments"
+    runs-on: "ubuntu-latest"
 
   announce:
     name: "Announce deployments"
@@ -51,8 +53,6 @@ jobs:
               transient_environment: true,
               required_contexts: [],
             });
-
-            console.log(deployment.data);
 
             await github.rest.repos.createDeploymentStatus({
               owner: context.repo.owner,
@@ -90,10 +90,6 @@ jobs:
             deploymentState = "inactive";
           }
 
-          console.log("results === ", results);
-          console.log("resolvedResult === ", resolvedResult);
-          console.log("deploymentState === ", deploymentState);
-
           [ process.env.STAGING_ID, process.env.PROD_ID ].forEach(async (deploymentId) => {
             await github.rest.repos.createDeploymentStatus({
               owner: context.repo.owner,
@@ -120,7 +116,6 @@ jobs:
         script: |
           const { setTimeout } = require("node:timers/promises");
           while (true) {
-            console.log("polling...");
             try {
               const workflowRuns = await github.rest.actions.listWorkflowRuns({
                 owner: context.repo.owner,
@@ -132,7 +127,6 @@ jobs:
               });
 
               if (workflowRuns.data.total_count > 0) {
-                console.log("found workflow runs!", workflowRuns && workflowRuns.data && workflowRuns.data.workflow_runs);
                 const run = workflowRuns.data.workflow_runs[0];
                 switch (run.conclusion) {
                   case "success":
