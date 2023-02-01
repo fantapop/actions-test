@@ -66,7 +66,7 @@ jobs:
   update_deployments:
     name: "Update deployment statuses"
     runs-on: "ubuntu-latest"
-    if: always()
+    if: always() && github.event.pull_request.state == 'open'
     needs:
     - announce
     - wait_for_build
