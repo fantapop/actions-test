@@ -65,8 +65,8 @@ jobs:
             core.setOutput(`${cc_env}_deployment_id`, deployment.data.id);
           });
 
-  cleanup:
-    name: "Clean up"
+  update_deployments:
+    name: "Update deployment statuses"
     runs-on: "ubuntu-latest"
     if: always()
     needs:
@@ -74,24 +74,28 @@ jobs:
     - wait_for_build
     - upload
     steps:
-    - name: "Cancel in-progress deployments"
-      uses: "actions/github-script@v6"
+    - uses: "actions/github-script@v6"
       env:
         STAGING_ID: ${{ needs.announce.outputs.staging_deployment_id }}
         PROD_ID: ${{ needs.announce.outputs.prod_deployment_id }}
-        RESULT: ${{ needs.wait_for_build.result != 'success'  && needs.wait_for_build.result || needs.upload.result }}
-        RESULTS: ${{ toJSON(needs.*.result) }}
       with:
         script: |
-          const needs = ${{ toJSON(needs.*.result) }};
-          console.log("needs = ", needs);
+          const results = ${{ toJSON(needs.*.result) }};
+          const resolvedResult = results.find(res => res !== "success") || "success";
+
+          let deploymentState = "";
+          if (resolvedResult === "success" || resolvedResult === "failure") {
+            deploymentState = resolvedResult;
+          } else {
+            deploymentState = "inactive";
+          }
 
           [ process.env.STAGING_ID, process.env.PROD_ID ].forEach(async ([cc_env, deploymentId]) => {
             await github.rest.repos.createDeploymentStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
               deployment_id: deploymentId,
-              state: process.env.RESULT === "cancelled" ? "inactive" : "failure",
+              state: deploymentState,
             });
           });
 
