@@ -90,6 +90,10 @@ jobs:
             deploymentState = "inactive";
           }
 
+          console.log("results === ", results);
+          console.log("resolvedResult === ", resolvedResult);
+          console.log("deploymentState === ", deploymentState);
+
           [ process.env.STAGING_ID, process.env.PROD_ID ].forEach(async (deploymentId) => {
             await github.rest.repos.createDeploymentStatus({
               owner: context.repo.owner,
@@ -126,8 +130,6 @@ jobs:
                 event: "pull_request",
                 status: "completed",
               });
-
-              console.log("res = ", workflowRuns);
 
               if (workflowRuns.data.total_count > 0) {
                 console.log("found workflow runs!", workflowRuns && workflowRuns.data && workflowRuns.data.workflow_runs);
