@@ -52,6 +52,8 @@ jobs:
               required_contexts: [],
             });
 
+            console.log(deployment.data);
+
             await github.rest.repos.createDeploymentStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -74,13 +76,16 @@ jobs:
     steps:
     - name: "Cancel in-progress deployments"
       uses: "actions/github-script@v6"
-      if: contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'failure')
       env:
         STAGING_ID: ${{ needs.announce.outputs.staging_deployment_id }}
         PROD_ID: ${{ needs.announce.outputs.prod_deployment_id }}
-        RESULT: ${{ needs.wait_for_build.result != 'succeeded'  && needs.wait_for_build.result || needs.upload.result }}
+        RESULT: ${{ needs.wait_for_build.result !== 'success'  && needs.wait_for_build.result || needs.upload.result }}
+        RESULTS: ${{ toJSON(needs.*.result) }}
       with:
         script: |
+          const needs = ${{ toJSON(needs.*.result) }};
+          console.log("needs = ", needs);
+
           [ process.env.STAGING_ID, process.env.PROD_ID ].forEach(async ([cc_env, deploymentId]) => {
             await github.rest.repos.createDeploymentStatus({
               owner: context.repo.owner,

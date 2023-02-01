@@ -10,16 +10,18 @@ on:
         description: "The type of build this is, used to determine which bucket it's uploaded to. One of ['preview', 'staging', 'production']."
         required: true
         type: "string"
+      build_workflow_run_id:
+        description: "The workflow run ID that produced the build artifact to upload."
+        type: number
 jobs:
   upload:
     name: "Upload Build"
     runs-on: "ubuntu-latest"
-    permissions: "write-all"
-      # actions: "read"
-      # contents: "read"
-      # id-token: "write"
-      # deployments: "write"
-      # issues: "write"
+    permissions:
+      actions: "read"
+      contents: "read"
+      id-token: "write"
+      deployments: "read"
 
     steps:
     - name: "Check inputs"
@@ -41,28 +43,30 @@ jobs:
           
     - uses: "actions/checkout@v3"
 
-    - name: "Download artifact (with action)"
-      if: ${{ !github.event.workflow_run.id }}
-      uses: "actions/download-artifact@v3"
-      with:
-        name: "some-ui-build"
-        path: "artifacts/in/"
+    # - name: "Download artifact (with action)"
+    #   if: ${{ !github.event.workflow_run.id }}
+    #   uses: "actions/download-artifact@v3"
+    #   with:
+    #     name: "some-ui-build"
+    #     path: "artifacts/in/"
     
     # The default actions/download-artifact action isn't available here, since the
     # artifact we're interested in was uploaded in a separate workflow.
     - name: "Download artifact (manual)"
       uses: "actions/github-script@v6"
-      if: github.event.workflow_run.id
+      if: inputs.build_workflow_run_id
+      env:
+        RUN_ID: ${{ inputs.build_workflow_run_id }}
       with:
         script: |
           let artifacts = await github.rest.actions.listWorkflowRunArtifacts({
              owner: context.repo.owner,
              repo: context.repo.repo,
-             run_id: ${{github.event.workflow_run.id }},
+             run_id: process.env.RUN_ID,
           });
           let foundArtifact = artifacts.data.artifacts.find((artifact) => artifact.name == "some-ui-build");
           if (!foundArtifact) {
-            core.setFailed(`Unable to find artifact named "some-ui-build" from workflow previous workflow ${{ github.event.workflow_run.html_url }}`);
+            core.setFailed(`Unable to find artifact named "some-ui-build" from workflow previous workflow ${process.env.RUN_ID}`);
           }
           let download = await github.rest.actions.downloadArtifact({
              owner: context.repo.owner,
@@ -74,10 +78,10 @@ jobs:
           fs.writeFileSync("${{github.workspace}}/some-ui-build.zip", Buffer.from(download.data));
 
     - name: "Extract artifact"
-      if: github.event.workflow_run.id
+      if: inputs.build_workflow_run_id
       run: mkdir -p artifacts/in/ && unzip -d artifacts/in/ some-ui-build.zip && rm some-ui-build.zip
 
-    - name: "Show download artifacts"
+    - name: "Show downloaded artifacts"
       run: ls -R
 
     - name: "Determine bucket name"
@@ -102,34 +106,34 @@ jobs:
     - name: "Upload to GCS"
       run: echo "pretend this is an upload to '${{ steps.determine_bucket_name.outputs.bucket }}'" && sleep 3
 
-    - name: "Create deployment"
-      if: inputs.build_type == 'preview'
-      uses: "actions/github-script@v6"
-      env:
-        THE_BUILD_ID: ${{ inputs.the_build_id }}
-        BUILT_REF: ${{ github.event.workflow_run.head_sha || github.sha }}
-      with:
-        script: |
-          console.log("context.repo = ", context.repo);
-          ["staging", "prod"].forEach(async (cc_env) => {
-            let deployment = await github.rest.repos.createDeployment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: process.env.BUILT_REF,
-              environment: `PR #${process.env.THE_BUILD_ID} (${cc_env} backend)`,
-              transient_environment: true,
-              required_contexts: [],
-            });
+    # - name: "Create deployment"
+    #   if: inputs.build_type == 'preview'
+    #   uses: "actions/github-script@v6"
+    #   env:
+    #     THE_BUILD_ID: ${{ inputs.the_build_id }}
+    #     BUILT_REF: ${{ github.event.workflow_run.head_sha || github.sha }}
+    #   with:
+    #     script: |
+    #       console.log("context.repo = ", context.repo);
+    #       ["staging", "prod"].forEach(async (cc_env) => {
+    #         let deployment = await github.rest.repos.createDeployment({
+    #           owner: context.repo.owner,
+    #           repo: context.repo.repo,
+    #           ref: process.env.BUILT_REF,
+    #           environment: `PR #${process.env.THE_BUILD_ID} (${cc_env} backend)`,
+    #           transient_environment: true,
+    #           required_contexts: [],
+    #         });
 
-            await github.rest.repos.createDeploymentStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              deployment_id: deployment.data.id,
-              state: "success",
-              environment_url: `https://${process.env.THE_BUILD_ID}.${cc_env}.preview.example.com`,
-              auto_inactive: true
-            });
-          });
+    #         await github.rest.repos.createDeploymentStatus({
+    #           owner: context.repo.owner,
+    #           repo: context.repo.repo,
+    #           deployment_id: deployment.data.id,
+    #           state: "success",
+    #           environment_url: `https://${process.env.THE_BUILD_ID}.${cc_env}.preview.example.com`,
+    #           auto_inactive: true
+    #         });
+    #       });
 
     - name: "Summarize"
       run: |
