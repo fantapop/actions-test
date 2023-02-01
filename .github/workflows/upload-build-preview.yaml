@@ -79,7 +79,7 @@ jobs:
       env:
         STAGING_ID: ${{ needs.announce.outputs.staging_deployment_id }}
         PROD_ID: ${{ needs.announce.outputs.prod_deployment_id }}
-        RESULT: ${{ needs.wait_for_build.result !== 'success'  && needs.wait_for_build.result || needs.upload.result }}
+        RESULT: ${{ needs.wait_for_build.result != 'success'  && needs.wait_for_build.result || needs.upload.result }}
         RESULTS: ${{ toJSON(needs.*.result) }}
       with:
         script: |
