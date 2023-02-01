@@ -128,7 +128,7 @@ jobs:
                   case "failure":
                     core.warning("UI build failed; nothing to upload");
                     return;
-                  case "cancelled"
+                  case "cancelled":
                     core.info("UI build canceled; nothing to upload");
                     return;
                   default:
