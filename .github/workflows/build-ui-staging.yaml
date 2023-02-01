@@ -1,4 +1,4 @@
-name: "Build UI: Staging"
+name: "Staging: Build UI"
 on:
   push:
     branches:

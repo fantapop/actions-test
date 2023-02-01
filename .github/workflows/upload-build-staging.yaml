@@ -1,19 +1,18 @@
-name: "Upload Build: Staging"
-permissions:
-  actions: "read"
-  packages: "read"
-  repository-projects: "read"
-  security-events: "read"
-  statuses: "read"
-  contents: "read"
-  issues: "write"
-  pull-requests: "write"
-  deployments: "write"
+name: "Staging: Upload UI"
 on:
   workflow_run:
-    workflows: [ "Build UI: Staging" ]
+    workflows: [ "Staging: Build UI" ]
     types: [ "completed" ]
 jobs:
+  debug:
+    runs-on: "ubuntu-latest"
+    steps:
+    - env:
+        EVENT_CONTEXT: ${{ toJSON(github.event) }}
+        sha: github.sha
+        head_sha: github.head_sha
+      run: echo "Expand this and look at 'env'."
+
   upload:
     uses: "./.github/workflows/reusable--upload-build.yaml"
     with:
