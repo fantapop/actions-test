@@ -32,8 +32,8 @@ jobs:
     runs-on: "ubuntu-latest"
     if: github.event.pull_request.state == 'open'
     outputs:
-      staging_deployment_id: ${{ steps.create_deployments.staging_deployment_id }}
-      prod_deployment_id: ${{ steps.create_deployments.prod_deployment_id }}
+      staging_deployment_id: ${{ steps.create_deployments.outputs.staging_deployment_id }}
+      prod_deployment_id: ${{ steps.create_deployments.outputs.prod_deployment_id }}
     steps:
     - uses: "actions/github-script@v6"
       id: create_deployments
@@ -95,7 +95,7 @@ jobs:
     runs-on: "ubuntu-latest"
     if: github.event.pull_request.state == 'open'
     outputs:
-      run_id: ${{ steps.get_run_id.run_id }}
+      run_id: ${{ steps.get_run_id.outputs.run_id }}
     steps:
     - uses: "actions/github-script@v6"
       id: get_run_id
