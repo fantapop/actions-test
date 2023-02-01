@@ -51,7 +51,7 @@ jobs:
               repo: context.repo.repo,
               deployment_id: deployment.data.id,
               state: "in_progress",
-              environment_url: `https://${process.env.THE_BUILD_ID}.${cc_env}.preview.example.com`,
+              environment_url: `https://${process.env.THE_BUILD_ID}.${cc_env}.preview.crdb.io`,
             });
 
             core.setOutput(`${cc_env}_deployment_id`, deployment.data.id);
@@ -70,6 +70,7 @@ jobs:
       env:
         STAGING_ID: ${{ needs.announce.outputs.staging_deployment_id }}
         PROD_ID: ${{ needs.announce.outputs.prod_deployment_id }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
       with:
         script: |
           const results = ${{ toJSON(needs.*.result) }};
@@ -82,12 +83,16 @@ jobs:
             deploymentState = "inactive";
           }
 
-          [ process.env.STAGING_ID, process.env.PROD_ID ].forEach(async (deploymentId) => {
+          [
+            { id: process.env.STAGING_ID, env: "staging", },
+            { id: process.env.PROD_ID, env: "prod" },
+          ].forEach(async ({ id, env }) => {
             await github.rest.repos.createDeploymentStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              deployment_id: deploymentId,
+              deployment_id: id,
               state: deploymentState,
+              environment_url: `https://${process.env.PR_NUMBER}.${env}.preview.crdb.io`,
             });
           });
 
