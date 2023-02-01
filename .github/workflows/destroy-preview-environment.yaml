@@ -30,7 +30,7 @@ jobs:
           const owner = context.repo.owner;
           const repo = context.repo.repo;
           ["staging", "prod"].forEach(async (cc_env) => {
-            const deployments = github.rest.paginate.iterator(github.rest.repos.listDeployments, {
+            const deployments = github.paginate.iterator(github.rest.repos.listDeployments, {
               owner: owner,
               repo: repo,
               environment: `UI Previews (${cc_env} backend)`,
