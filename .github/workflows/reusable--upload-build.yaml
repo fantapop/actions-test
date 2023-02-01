@@ -12,7 +12,7 @@ on:
         type: "string"
       build_workflow_run_id:
         description: "The workflow run ID that produced the build artifact to upload."
-        type: number
+        type: string
 jobs:
   upload:
     name: "Upload Build"
