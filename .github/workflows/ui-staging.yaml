@@ -1,4 +1,4 @@
-name: "Staging: Build UI"
+name: "Staging UI"
 on:
   push:
     branches:
@@ -10,6 +10,13 @@ jobs:
   build:
     name: "Staging Build"
     uses: "./.github/workflows/reusable--build-ui.yaml"
+    with:
+      the_build_id: ${{ github.sha }}
+      build_type: "staging"
+
+  upload:
+    uses: "./.github/workflows/reusable--upload-build.yaml"
+    needs: build
     with:
       the_build_id: ${{ github.sha }}
       build_type: "staging"
