@@ -112,9 +112,12 @@ jobs:
                 head_sha: process.env.BUILT_REF,
                 event: "pull_request",
                 status: "completed"
-              })
-              console.log("found workflow runs!", workflowRuns && workflowRuns.data && workflowRuns.data.workflow_runs);
-              break;
+              });
+
+              if (workflowRuns.total_count > 0) {
+                console.log("found workflow runs!", workflowRuns && workflowRuns.data && workflowRuns.data.workflow_runs);
+                break;
+              }
             } catch (e) {
               core.info(e);
               await setTimeout(1_000);
