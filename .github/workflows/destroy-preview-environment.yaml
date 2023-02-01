@@ -37,6 +37,7 @@ jobs:
             });
 
             for await (const deployment of deployments) {
+              console.log("received deployment:", deployment);
               if (deployment.payload.pr_number !== ${{ github.event.pull_request.number }}) {
                 console.log("Skipping not-matching deployment:", deployment);
                 continue;
