@@ -110,6 +110,8 @@ jobs:
                 repo: context.repo.repo,
                 workflow_id: ".github/workflows/build-ui-preview.yaml",
                 head_sha: process.env.BUILT_REF,
+                event: "pull_request",
+                status: "completed"
               })
               console.log("found workflow runs!", workflowRuns && workflowRuns.data && workflowRuns.data.workflow_runs);
               break;
