@@ -15,7 +15,7 @@ jobs:
 
   upload:
     uses: "./.github/workflows/reusable--upload-build.yaml"
-    if: github.event.workflow_run.conclusion}}
+    if: github.event.workflow_run.conclusion == 'sucess'
     with:
       the_build_id: ${{ github.event.workflow_run.head_sha }}
       build_type: "staging"
