@@ -74,7 +74,7 @@ jobs:
     steps:
     - name: "Cancel in-progress deployments"
       uses: "actions/github-script@v6"
-      if: contains(needs.*.result, "cancelled") || contains(needs.*.result, "failure")
+      if: contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'failure')
       env:
         STAGING_ID: ${{ needs.announce.outputs.staging_deployment_id }}
         PROD_ID: ${{ needs.announce.outputs.prod_deployment_id }}
