@@ -90,11 +90,14 @@ jobs:
             deploymentState = "inactive";
           }
 
+          console.log(`process.env.STAGING_ID (${typeof process.env.STAGING_ID}) = ${process.env.STAGING_ID}`);
+          console.log(`Number.parseInt(process.env.STAGING_ID) = ${Number.parseInt(process.env.STAGING_ID)}`);
+
           [ process.env.STAGING_ID, process.env.PROD_ID ].forEach(async ([cc_env, deploymentId]) => {
             await github.rest.repos.createDeploymentStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              deployment_id: deploymentId,
+              deployment_id: Number.parseInt(deploymentId, 10),
               state: deploymentState,
             });
           });
