@@ -109,7 +109,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 workflow_id: ".github/workflows/build-ui-preview.yaml",
-                ref: process.env.BUILT_REF,
+                head_sha: process.env.BUILT_REF,
               })
               console.log("found workflow runs!", workflowRuns && workflowRuns.data && workflowRuns.data.workflow_runs);
               break;
