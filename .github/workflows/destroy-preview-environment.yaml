@@ -20,6 +20,7 @@ jobs:
     runs-on: "ubuntu-latest"
     # DEBUG: does this fix the "can't delete an environment" issue?
     permissions: "write-all"
+    if: false
     steps:
     - name: "Delete deployments"
       uses: "actions/github-script@v6"
@@ -53,11 +54,5 @@ jobs:
                 repo: repo,
                 deployment_id: deployment.id,
               });
-            });
-
-            await github.rest.repos.deleteAnEnvironment({
-              owner: owner,
-              repo: repo,
-              environment_name: envName,
             });
           });
