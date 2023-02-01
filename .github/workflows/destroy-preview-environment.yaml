@@ -23,8 +23,6 @@ jobs:
     steps:
     - name: "Delete deployments"
       uses: "actions/github-script@v6"
-      env:
-        PR_NUMBER: ${{ github.event.pull_request.number }}
       with:
         script: |
           const owner = context.repo.owner;
