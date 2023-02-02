@@ -17,7 +17,7 @@ jobs:
       id: create_deployment
       with:
         script: |
-          const { createInProgressDeployment } = require("./js/deployments");
+          const { createInProgressDeployment } = require("./.github/workflows/js/deployments");
           const helpers = { github, context };
           const sha = ${{ toJSON(github.sha) }};
 
@@ -55,7 +55,7 @@ jobs:
     - uses: "actions/github-script@v6"
       with:
         script: |
-          const { finalizeDeployment } = require("./js/deployments");
+          const { finalizeDeployment } = require("./.github/workflows/js/deployments");
           const helpers = { github, context };
           const needsResults = ${{ toJSON(needs.*.result) }};
           const deploymentId = ${{ toJSON(needs.announce.outputs.deployment_id) }};

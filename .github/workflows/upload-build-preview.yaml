@@ -33,7 +33,7 @@ jobs:
       id: create_deployments
       with:
         script: |
-          const { createInProgressDeployment } = require("./js/deployments");
+          const { createInProgressDeployment } = require("./.github/workflows/js/deployments");
           const helpers = { github, context };
           const buildId = ${{ toJSON(github.event.pull_request.number) }};
           const sha = ${{ toJSON(github.event.pull_request.head.sha) }};
@@ -64,7 +64,7 @@ jobs:
         PR_NUMBER: ${{ github.event.pull_request.number }}
       with:
         script: |
-          const { finalizeDeployment } = require("./js/deployments");
+          const { finalizeDeployment } = require("./.github/workflows/js/deployments");
           const helpers = { github, context };
           const needsResults = ${{ toJSON(needs.*.result) }};
           const buildId = process.env.PR_NUMBER;
