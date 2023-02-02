@@ -60,26 +60,24 @@ jobs:
     steps:
     - uses: "actions/checkout@v3"
     - uses: "actions/github-script@v6"
-      env:
-        STAGING_ID: ${{ needs.announce.outputs.staging_deployment_id }}
-        PROD_ID: ${{ needs.announce.outputs.prod_deployment_id }}
-        PR_NUMBER: ${{ github.event.pull_request.number }}
       with:
         script: |
           const { finalizeDeployment } = require("./.github/workflows/js/deployments");
           const helpers = { github, context };
           const needsResults = ${{ toJSON(needs.*.result) }};
-          const buildId = process.env.PR_NUMBER;
+          const buildId = ${{ toJSON(github.event.pull_request.number) }};
 
           await finalizeDeployment(helpers, {
-            deploymentId: process.env.STAGING_ID,
+            deploymentId: ${{ toJSON(needs.announce.outputs.staging_deployment_id) }},
             buildId: buildId,
+            needsResults: needsResults,
             url: `https://${buildId}.staging.preview.crdb.io`,
           });
 
           await finalizeDeployment(helpers, {
-            deploymentId: process.env.PROD_ID,
+            deploymentId: ${{ toJSON(needs.announce.outputs.prod_deployment_id) }},
             buildId: buildId,
+            needsResults: needsResults,
             url: `https://${buildId}.prod.preview.crdb.io`,
           });
 

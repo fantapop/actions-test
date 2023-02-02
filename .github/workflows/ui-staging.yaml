@@ -11,7 +11,7 @@ jobs:
     name: "Announce deployment"
     runs-on: "ubuntu-latest"
     outputs:
-      deployment_id: ${{ steps.create_deployment.output.deployment_id }}
+      deployment_id: ${{ steps.create_deployment.outputs.deployment_id }}
     steps:
     - uses: "actions/checkout@v3"
     - uses: "actions/github-script@v6"
@@ -65,5 +65,6 @@ jobs:
           await finalizeDeployment(helpers, {
             deploymentId: deploymentId,
             buildId: buildId,
+            needsResults: needsResults,
             url: "https://management-staging.crdb.io",
           });
