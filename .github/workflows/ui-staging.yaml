@@ -38,7 +38,7 @@ jobs:
       build_type: "staging"
 
   upload:
-    uses: "./.github/workflows/reusable--upload-build.yaml"
+    uses: "./.github/workflows/reusable_ui-upload.yaml"
     needs: build
     with:
       the_build_id: ${{ github.sha }}
