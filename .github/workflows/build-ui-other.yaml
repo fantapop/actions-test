@@ -1,4 +1,4 @@
-name: "Build UI: Other"
+name: "UI General: Build"
 on:
   push:
     branches-ignore:
@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     name: "General Build"
-    uses: "./.github/workflows/reusable--build-ui.yaml"
+    uses: "./.github/workflows/reusable_ui-build.yaml"
     with:
       the_build_id: ${{ github.sha }}
       build_type: "other"

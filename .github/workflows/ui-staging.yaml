@@ -32,7 +32,7 @@ jobs:
           core.setOutput("deployment_id", deploymentId);
 
   build:
-    uses: "./.github/workflows/reusable--build-ui.yaml"
+    uses: "./.github/workflows/reusable_ui-build.yaml"
     with:
       the_build_id: ${{ github.sha }}
       build_type: "staging"
