@@ -1,4 +1,4 @@
-name: "Upload Build: Preview"
+name: "Preview UI: Upload"
 on:
   pull_request_target:
     branches:
@@ -10,7 +10,6 @@ on:
       - "opened"
       - "reopened"
       - "synchronize"
-      - "closed"
 jobs:
   debug:
     runs-on: "ubuntu-latest"
@@ -50,8 +49,8 @@ jobs:
             core.setOutput(`${cc_env}_deployment_id`, deploymentId);
           });
 
-  update_deployments:
-    name: "Update deployment statuses"
+  finalize_deployments:
+    name: "Finalize deployment statuses"
     runs-on: "ubuntu-latest"
     if: always() && github.event.pull_request.state == 'open'
     needs:
@@ -103,7 +102,7 @@ jobs:
               const workflowRuns = await github.rest.actions.listWorkflowRuns({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                workflow_id: ".github/workflows/build-ui-preview.yaml",
+                workflow_id: ".github/workflows/ui-preview/build.yaml",
                 head_sha: process.env.BUILT_REF,
                 event: "pull_request",
                 status: "completed",

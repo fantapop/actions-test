@@ -22,7 +22,8 @@ jobs:
   build_ui:
     name: "Build UI"
     runs-on: "ubuntu-latest"
-    permissions: "read-all"
+    permissions:
+      contents: "read"
 
     steps:
     - name: "Check inputs"
