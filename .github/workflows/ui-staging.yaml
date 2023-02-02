@@ -7,6 +7,28 @@ on:
     paths: 
       - "the-ui/**"
 jobs:
+  announce:
+    name: "Announce deployment"
+    runs-on: "ubuntu-latest"
+    outputs:
+      deployment_id: ${{ steps.create_deployment.output.deployment_id }}
+    steps:
+    - uses: "actions/github-script@v6"
+      id: create_deployment
+      with:
+        script: |
+          const { createInProgressDeployment } = require("./js/deployments");
+          const helpers = { github, context };
+          const sha = ${{ toJSON(github.sha) }};
+
+          const deploymentId = await createInProgressDeployment(helpers, {
+            buildId: sha,
+            sha: sha,
+            url: "https://management-staging.crdb.io",
+          });
+
+          core.setOutput("deployment_id", deploymentId);
+
   build:
     name: "Staging Build"
     uses: "./.github/workflows/reusable--build-ui.yaml"
@@ -20,3 +42,27 @@ jobs:
     with:
       the_build_id: ${{ github.sha }}
       build_type: "staging"
+
+  finalize_deployment:
+    name: "Finalize deployment status"
+    runs-on: "ubuntu-latest"
+    if: always()
+    needs:
+    - announce
+    - build
+    - upload
+    steps:
+    - uses: "actions/github-script@v6"
+      with:
+        script: |
+          const { finalizeDeployment } = require("./js/deployments");
+          const helpers = { github, context };
+          const needsResults = ${{ toJSON(needs.*.result) }};
+          const deploymentId = ${{ toJSON(needs.announce.outputs.deployment_id) }};
+          const buildId = ${{ toJSON(github.sha) }}
+
+          await finalizeDeployment(helpers, {
+            deploymentId: deploymentId,
+            buildId: buildId,
+            url: "https://m/anagement-staging.crdb.io",
+          });
