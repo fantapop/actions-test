@@ -43,6 +43,7 @@ jobs:
             const deploymentId = await createInProgressDeployment(helpers, {
               buildId: buildId,
               sha: sha,
+              envName: `UI Previews (${cc_env} backend)`,
               url: `https://${buildId}.${cc_env}.preview.crdb.io`
             });
 

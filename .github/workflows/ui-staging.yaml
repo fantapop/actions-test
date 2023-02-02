@@ -25,6 +25,7 @@ jobs:
           const deploymentId = await createInProgressDeployment(helpers, {
             buildId: sha,
             sha: sha,
+            envName: "staging",
             url: "https://management-staging.crdb.io",
           });
 
