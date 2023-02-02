@@ -13,6 +13,7 @@ jobs:
     outputs:
       deployment_id: ${{ steps.create_deployment.output.deployment_id }}
     steps:
+    - uses: "actions/checkout@v3"
     - uses: "actions/github-script@v6"
       id: create_deployment
       with:
@@ -30,7 +31,6 @@ jobs:
           core.setOutput("deployment_id", deploymentId);
 
   build:
-    name: "Staging Build"
     uses: "./.github/workflows/reusable--build-ui.yaml"
     with:
       the_build_id: ${{ github.sha }}
@@ -52,6 +52,7 @@ jobs:
     - build
     - upload
     steps:
+    - uses: "actions/checkout@v3"
     - uses: "actions/github-script@v6"
       with:
         script: |
@@ -64,5 +65,5 @@ jobs:
           await finalizeDeployment(helpers, {
             deploymentId: deploymentId,
             buildId: buildId,
-            url: "https://m/anagement-staging.crdb.io",
+            url: "https://management-staging.crdb.io",
           });

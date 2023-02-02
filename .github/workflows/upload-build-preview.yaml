@@ -29,6 +29,7 @@ jobs:
       staging_deployment_id: ${{ steps.create_deployments.outputs.staging_deployment_id }}
       prod_deployment_id: ${{ steps.create_deployments.outputs.prod_deployment_id }}
     steps:
+    - uses: "actions/checkout@v3"
     - uses: "actions/github-script@v6"
       id: create_deployments
       with:
@@ -57,6 +58,7 @@ jobs:
     - wait_for_build
     - upload
     steps:
+    - uses: "actions/checkout@v3"
     - uses: "actions/github-script@v6"
       env:
         STAGING_ID: ${{ needs.announce.outputs.staging_deployment_id }}
